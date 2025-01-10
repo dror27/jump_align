@@ -1,6 +1,18 @@
 #include <stdio.h>
 #include <string.h>
+#include <string>
 #include "GlobalJumpAligner.hpp"
+
+using namespace std;
+
+string to_string(ALIGNPATH::path_t& path) {
+	string s;
+	for ( auto&& segment : path ) {
+		s.append(to_string(segment.length));
+		s += segment_type_to_cigar_code(segment.type);
+	}
+	return s;
+}
 
 int main(int argc, char* argv[]) {
 	
@@ -18,6 +30,7 @@ int main(int argc, char* argv[]) {
 	// loop on reading lines and process
 	static char line[100000];
 	int lineno = 0;
+	printf("score\tjumpInsertSize\tjumpRange\tbeginPos1\tapath1\tbeginPos2\tapath2\n");
 	while ( fgets(line, sizeof(line), stdin) ) {
 		lineno++;
 		if (!line[0] || line[0] == '#' ) {
@@ -34,7 +47,14 @@ int main(int argc, char* argv[]) {
 		jumpAlign<GlobalJumpAligner<int>,const char*,int>(
 				aligner, seq, seq + strlen(seq), ref1, ref1 + strlen(ref1), ref2, ref2 + strlen(ref2), result);
 
-		printf("%d\n", result.score);
+		
+		string apath1 = to_string(result.align1.apath);
+		string apath2 = to_string(result.align2.apath);
+		printf("%d\t%d\t%d\t%d\t%s\t%d\t%s\n", 
+					result.score, result.jumpInsertSize, result.jumpRange,
+					result.align1.beginPos, apath1.c_str(),
+					result.align2.beginPos, apath2.c_str()
+					);
 	}
 
 	return 0;
