@@ -2,7 +2,7 @@ ARG TARGET="znver2"
 ARG BUILD="all"
 
 ############################
-FROM --platform=linux/amd64 ubuntu:22.04 AS build-base
+FROM ubuntu:22.04 AS build-base
 
 RUN apt-get update && \
   apt-get -y install --no-install-recommends \
@@ -42,10 +42,13 @@ RUN apt-get update && \
     unzip \
   ;
 
+# download manta source code (no need to compule at this time)
+RUN mkdir -p manta
+RUN cd manta && wget --no-check-certificate https://github.com/Illumina/manta/archive/refs/tags/v1.6.0.zip && unzip v1.6.0.zip
 
-
+# build executable
+FROM dev AS build
 RUN mkdir -p jump_align
 COPY . jump_align/
-RUN cd jump_align && wget --no-check-certificate https://github.com/Illumina/manta/archive/refs/tags/v1.6.0.zip && unzip v1.6.0.zip
 RUN cd jump_align && ./mk.sh && cp jump_align /usr/local/bin
 
